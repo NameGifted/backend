@@ -52,6 +52,7 @@ class PowerBank(db.Model):
         if self.status != 'available':
             return False, "Power bank is not available"
         
+        # Create a new rental record
         rental = Rental(
             powerbank_id=self.id,
             user_id=user_id,
@@ -73,10 +74,12 @@ class PowerBank(db.Model):
         Returns:
             tuple: (success: bool, message: str)
         """
+        # Find the active rental for this power bank
         active_rental = Rental.query.filter_by(powerbank_id=self.id, status='active').first()
         if not active_rental:
             return False, "No active rental found"
         
+        # Update rental to mark it as completed
         active_rental.end_time = datetime.utcnow()
         active_rental.status = 'completed'
         self.current_charge = current_charge
