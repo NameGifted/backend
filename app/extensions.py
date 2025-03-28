@@ -54,6 +54,9 @@ class Rental(db.Model):
 ## User Registration
 @app.route('/register', methods=['POST'])
 def register():
+    """
+    Register a new user.
+    """
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
@@ -79,6 +82,9 @@ def register():
 ## User Login
 @app.route('/login', methods=['POST'])
 def login():
+    """
+    Log in a user.
+    """
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
@@ -95,6 +101,9 @@ def login():
 @app.route('/user', methods=['GET'])
 @jwt_required()
 def get_user():
+    """
+    Retrieve the profile of the logged-in user.
+    """
     user_id = get_jwt_identity()
     user = User.query.get(user_id)
     if user:
@@ -111,6 +120,9 @@ def get_user():
 @app.route('/user', methods=['PUT'])
 @jwt_required()
 def update_user():
+    """
+    Update the profile of the logged-in user.
+    """
     user_id = get_jwt_identity()
     user = User.query.get(user_id)
     if not user:
@@ -128,6 +140,9 @@ def update_user():
 ## List All Locations
 @app.route('/locations', methods=['GET'])
 def get_locations():
+    """
+    List all locations.
+    """
     locations = Location.query.all()
     return jsonify([{
         'id': loc.id,
@@ -138,6 +153,9 @@ def get_locations():
 ## List Available Power Banks at a Location
 @app.route('/locations/<int:location_id>/powerbanks', methods=['GET'])
 def get_available_powerbanks(location_id):
+    """
+    List all available power banks at a specific location.
+    """
     powerbanks = PowerBank.query.filter_by(location_id=location_id, status='available').all()
     return jsonify([{
         'id': pb.id,
@@ -149,6 +167,9 @@ def get_available_powerbanks(location_id):
 @app.route('/rent', methods=['POST'])
 @jwt_required()
 def rent_powerbank():
+    """
+    Rent a power bank.
+    """
     user_id = get_jwt_identity()
     data = request.get_json()
     powerbank_id = data.get('powerbank_id')
@@ -174,6 +195,9 @@ def rent_powerbank():
 @app.route('/return', methods=['POST'])
 @jwt_required()
 def return_powerbank():
+    """
+    Return a rented power bank.
+    """
     user_id = get_jwt_identity()
     data = request.get_json()
     rental_id = data.get('rental_id')
@@ -194,6 +218,9 @@ def return_powerbank():
 @app.route('/rentals', methods=['GET'])
 @jwt_required()
 def get_active_rentals():
+    """
+    Retrieve the active rentals of the logged-in user.
+    """
     user_id = get_jwt_identity()
     rentals = Rental.query.filter_by(user_id=user_id, status='active').all()
     return jsonify([{
