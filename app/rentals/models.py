@@ -6,7 +6,8 @@ from datetime import datetime
 # Initialize the FastAPI app
 app = FastAPI()
 
-# Pydantic Models
+# --- Pydantic Models ---
+
 ## Base model for a rental
 class Rental(BaseModel):
     id: int
@@ -35,7 +36,8 @@ class PowerBank(BaseModel):
     id: int
     status: str  # e.g., "available", "rented"
 
-# In-memory data stores (simulating a database)
+# --- In-memory data stores (simulating a database) ---
+
 rentals = []
 powerbanks = [
     {"id": 1, "status": "available"},
@@ -43,15 +45,32 @@ powerbanks = [
     {"id": 3, "status": "rented"},
 ]
 
-# Rental Endpoints
+# --- Rental Endpoints ---
+
 @app.get("/rentals", response_model=List[RentalOut])
 def list_rentals():
-    """List all rentals."""
+    """
+    List all rentals.
+    
+    Returns:
+        A list of rental objects.
+    """
     return rentals
 
 @app.get("/rentals/{rental_id}", response_model=RentalOut)
 def get_rental(rental_id: int):
-    """Get details of a specific rental."""
+    """
+    Get details of a specific rental.
+    
+    Args:
+        rental_id: The ID of the rental to retrieve.
+    
+    Returns:
+        The rental object if found.
+    
+    Raises:
+        HTTPException: 404 if the rental is not found.
+    """
     rental = next((r for r in rentals if r["id"] == rental_id), None)
     if rental is None:
         raise HTTPException(status_code=404, detail="Rental not found")
@@ -59,7 +78,18 @@ def get_rental(rental_id: int):
 
 @app.post("/rentals", response_model=RentalOut)
 def create_rental(rental_in: RentalIn):
-    """Create a new rental."""
+    """
+    Create a new rental.
+    
+    Args:
+        rental_in: The rental data to create.
+    
+    Returns:
+        The created rental object.
+    
+    Raises:
+        HTTPException: 404 if the power bank is not found, 400 if the power bank is not available.
+    """
     # Check if the power bank exists and is available
     powerbank = next((pb for pb in powerbanks if pb["id"] == rental_in.powerbank_id), None)
     if powerbank is None:
@@ -83,7 +113,18 @@ def create_rental(rental_in: RentalIn):
 
 @app.put("/rentals/{rental_id}/return", response_model=RentalOut)
 def return_powerbank(rental_id: int):
-    """Return a power bank and complete the rental."""
+    """
+    Return a power bank and complete the rental.
+    
+    Args:
+        rental_id: The ID of the rental to return.
+    
+    Returns:
+        The updated rental object.
+    
+    Raises:
+        HTTPException: 404 if the rental is not found or not active.
+    """
     # Find an active rental by ID
     rental = next((r for r in rentals if r["id"] == rental_id and r["status"] == "active"), None)
     if rental is None:
