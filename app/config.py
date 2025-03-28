@@ -56,10 +56,8 @@ class PowerBankIn(BaseModel):
     status: str = "available"
 
 # --- Dummy Databases ---
-
-users = [
-    {"id": 1, "name": "Admin", "email": "admin@example.com"}
-]
+# Note: Replace with a real database in a production environment
+users = [{"id": 1, "name": "Admin", "email": "admin@example.com"}]
 stations = [
     {"id": 1, "location": "Station A", "powerbanks_available": 2},
     {"id": 2, "location": "Station B", "powerbanks_available": 1},
@@ -110,9 +108,9 @@ def get_stations():
 @app.get("/stations/{station_id}", response_model=Station)
 def get_station(station_id: int):
     """Retrieve details of a specific station by ID."""
-    for station in stations:
-        if station["id"] == station_id:
-            return station
+    station = next((s for s in stations if s["id"] == station_id), None)
+    if station:
+        return station
     raise HTTPException(status_code=404, detail="Station not found")
 
 @app.post("/stations", response_model=Station)
@@ -135,10 +133,9 @@ def create_powerbank(powerbank: PowerBankIn, admin: dict = Depends(get_current_a
     new_powerbank = {"id": len(powerbanks) + 1, **powerbank.dict()}
     powerbanks.append(new_powerbank)
     if new_powerbank["status"] == "available":
-        for station in stations:
-            if station["id"] == new_powerbank["station_id"]:
-                station["powerbanks_available"] += 1
-                break
+        station = next((s for s in stations if s["id"] == new_powerbank["station_id"]), None)
+        if station:
+            station["powerbanks_available"] += 1
     return new_powerbank
 
 # Rental Management
@@ -162,10 +159,9 @@ def rent_powerbank(rental: RentalIn, current_user: dict = Depends(get_current_us
     }
     rentals.append(new_rental)
     powerbank["status"] = "rented"
-    for station in stations:
-        if station["id"] == powerbank["station_id"]:
-            station["powerbanks_available"] -= 1
-            break
+    station = next((s for s in stations if s["id"] == powerbank["station_id"]), None)
+    if station:
+        station["powerbanks_available"] -= 1
     return new_rental
 
 @app.put("/rentals/{rental_id}/return", response_model=RentalOut)
@@ -181,10 +177,9 @@ def return_powerbank(rental_id: int, current_user: dict = Depends(get_current_us
     rental["status"] = "completed"
     powerbank = next(pb for pb in powerbanks if pb["id"] == rental["powerbank_id"])
     powerbank["status"] = "available"
-    for station in stations:
-        if station["id"] == powerbank["station_id"]:
-            station["powerbanks_available"] += 1
-            break
+    station = next((s for s in stations if s["id"] == powerbank["station_id"]), None)
+    if station:
+        station["powerbanks_available"] += 1
     return rental
 
 @app.get("/rentals", response_model=List[RentalOut])
