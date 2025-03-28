@@ -7,6 +7,7 @@ from datetime import datetime
 app = FastAPI(title="Power Bank Rental Service")
 
 # --- Data Models ---
+
 # User Models
 class UserBase(BaseModel):
     name: str
@@ -60,8 +61,11 @@ powerbanks_db = [
 rentals_db = []
 
 # --- Dependency ---
-# Dummy function to simulate getting the current authenticated user
 def get_current_user():
+    """
+    Dummy function to simulate getting the current authenticated user.
+    Always returns the first user for this example.
+    """
     if users_db:
         return users_db[0]  # Returns the first user as the "current" user
     else:
@@ -69,64 +73,72 @@ def get_current_user():
 
 # --- Endpoints ---
 
-## User Endpoints
+# User Endpoints
 @app.post("/users", response_model=User)
 def create_user(user: UserCreate):
-    """Register a new user."""
+    """
+    Register a new user.
+    """
     new_user = {"id": len(users_db) + 1, "name": user.name, "email": user.email}
     users_db.append(new_user)
     return new_user
 
 @app.get("/users/{user_id}", response_model=User)
 def read_user(user_id: int):
-    """Get details of a specific user by ID."""
-    for user in users_db:
-        if user["id"] == user_id:
-            return user
+    """
+    Get details of a specific user by ID.
+    """
+    user = next((user for user in users_db if user["id"] == user_id), None)
+    if user:
+        return user
     raise HTTPException(status_code=404, detail="User not found")
 
-## Station Endpoints
+# Station Endpoints
 @app.get("/stations", response_model=List[Station])
 def read_stations():
-    """List all stations."""
+    """
+    List all stations.
+    """
     return stations_db
 
 @app.get("/stations/{station_id}", response_model=Station)
 def read_station(station_id: int):
-    """Get details of a specific station by ID."""
-    for station in stations_db:
-        if station["id"] == station_id:
-            return station
+    """
+    Get details of a specific station by ID.
+    """
+    station = next((station for station in stations_db if station["id"] == station_id), None)
+    if station:
+        return station
     raise HTTPException(status_code=404, detail="Station not found")
 
-## PowerBank Endpoints
+# PowerBank Endpoints
 @app.get("/powerbanks", response_model=List[PowerBank])
 def read_powerbanks():
-    """List all power banks."""
+    """
+    List all power banks.
+    """
     return powerbanks_db
 
 @app.get("/powerbanks/{powerbank_id}", response_model=PowerBank)
 def read_powerbank(powerbank_id: int):
-    """Get details of a specific power bank by ID."""
-    for pb in powerbanks_db:
-        if pb["id"] == powerbank_id:
-            return pb
+    """
+    Get details of a specific power bank by ID.
+    """
+    powerbank = next((pb for pb in powerbanks_db if pb["id"] == powerbank_id), None)
+    if powerbank:
+        return powerbank
     raise HTTPException(status_code=404, detail="PowerBank not found")
 
-## Rental Endpoints
+# Rental Endpoints
 @app.post("/rentals", response_model=Rental)
 def create_rental(rental: RentalCreate, current_user: dict = Depends(get_current_user)):
-    """Rent a power bank."""
-    # Check if the power bank is available
-    powerbank = None
-    for pb in powerbanks_db:
-        if pb["id"] == rental.powerbank_id and pb["status"] == "available":
-            powerbank = pb
-            break
+    """
+    Rent a power bank.
+    """
+    powerbank = next((pb for pb in powerbanks_db if pb["id"] == rental.powerbank_id and pb["status"] == "available"), None)
     if not powerbank:
         raise HTTPException(status_code=400, detail="PowerBank not available")
 
-    # Create a new rental record
     new_rental = {
         "id": len(rentals_db) + 1,
         "user_id": current_user["id"],
@@ -141,20 +153,22 @@ def create_rental(rental: RentalCreate, current_user: dict = Depends(get_current
 
 @app.put("/rentals/{rental_id}/return", response_model=Rental)
 def return_powerbank(rental_id: int, current_user: dict = Depends(get_current_user)):
-    """Return a rented power bank."""
-    for rental in rentals_db:
-        if rental["id"] == rental_id and rental["user_id"] == current_user["id"] and rental["status"] == "active":
-            rental["end_time"] = datetime.now()
-            rental["status"] = "completed"
-            # Update power bank status
-            for pb in powerbanks_db:
-                if pb["id"] == rental["powerbank_id"]:
-                    pb["status"] = "available"
-                    break
-            return rental
-    raise HTTPException(status_code=400, detail="Rental not found or not active")
+    """
+    Return a rented power bank.
+    """
+    rental = next((r for r in rentals_db if r["id"] == rental_id and r["user_id"] == current_user["id"] and r["status"] == "active"), None)
+    if not rental:
+        raise HTTPException(status_code=400, detail="Rental not found or not active")
+
+    rental["end_time"] = datetime.now()
+    rental["status"] = "completed"
+    powerbank = next(pb for pb in powerbanks_db if pb["id"] == rental["powerbank_id"])
+    powerbank["status"] = "available"
+    return rental
 
 @app.get("/rentals", response_model=List[Rental])
 def read_rentals(current_user: dict = Depends(get_current_user)):
-    """List all rentals for the current user."""
+    """
+    List all rentals for the current user.
+    """
     return [rental for rental in rentals_db if rental["user_id"] == current_user["id"]]
