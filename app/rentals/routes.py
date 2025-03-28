@@ -18,7 +18,7 @@ def create_rental():
     user_id = data.get('user_id')
     powerbank_id = data.get('powerbank_id')
     
-    # Validate that user_id and powerbank_id are provided and are integers
+    # Validate user_id and powerbank_id
     try:
         user_id = int(user_id)
         powerbank_id = int(powerbank_id)
