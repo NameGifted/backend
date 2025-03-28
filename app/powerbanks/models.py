@@ -16,6 +16,9 @@ class Station(db.Model):
     def to_dict(self):
         """
         Serializes the Station object to a dictionary.
+        
+        Returns:
+            dict: A dictionary representation of the station.
         """
         return {
             'id': self.id,
@@ -84,6 +87,9 @@ class PowerBank(db.Model):
     def to_dict(self):
         """
         Serializes the PowerBank object to a dictionary.
+        
+        Returns:
+            dict: A dictionary representation of the power bank.
         """
         return {
             'id': self.id,
@@ -109,6 +115,9 @@ class Rental(db.Model):
     def to_dict(self):
         """
         Serializes the Rental object to a dictionary.
+        
+        Returns:
+            dict: A dictionary representation of the rental.
         """
         return {
             'id': self.id,
