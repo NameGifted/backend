@@ -61,8 +61,7 @@ def read_stations(
     Returns:
         A list of station objects.
     """
-    stations = db.query(models.StationDB).offset(skip).limit(limit).all()
-    return stations
+    return db.query(models.StationDB).offset(skip).limit(limit).all()
 
 # Endpoint to retrieve details of a specific station
 @router.get("/{station_id}", response_model=schemas.Station)
@@ -120,15 +119,12 @@ def update_station(
         raise HTTPException(status_code=404, detail="Station not found")
     
     update_data = station_update.dict(exclude_unset=True)
-    if "available_power_banks" in update_data and "capacity" in update_data:
-        if update_data["available_power_banks"] > update_data["capacity"]:
-            raise HTTPException(status_code=400, detail="Available power banks cannot exceed capacity")
-    elif "available_power_banks" in update_data:
-        if update_data["available_power_banks"] > db_station.capacity:
-            raise HTTPException(status_code=400, detail="Available power banks cannot exceed capacity")
-    elif "capacity" in update_data:
-        if db_station.available_power_banks > update_data["capacity"]:
-            raise HTTPException(status_code=400, detail="Capacity cannot be less than available power banks")
+    
+    # Validate capacity and available power banks
+    if "available_power_banks" in update_data and update_data["available_power_banks"] > db_station.capacity:
+        raise HTTPException(status_code=400, detail="Available power banks cannot exceed capacity")
+    if "capacity" in update_data and db_station.available_power_banks > update_data["capacity"]:
+        raise HTTPException(status_code=400, detail="Capacity cannot be less than available power banks")
     
     for key, value in update_data.items():
         setattr(db_station, key, value)
