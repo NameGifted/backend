@@ -9,7 +9,8 @@ auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
-    """Register a new user.
+    """
+    Register a new user.
 
     Request body:
         - username (str): The desired username
@@ -45,7 +46,8 @@ def register():
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
-    """Log in a user and return access and refresh tokens.
+    """
+    Log in a user and return access and refresh tokens.
 
     Request body:
         - identifier (str): Username or email
@@ -73,7 +75,8 @@ def login():
 @auth_bp.route('/token/refresh', methods=['POST'])
 @jwt_required(refresh=True)
 def refresh():
-    """Refresh an access token using a refresh token.
+    """
+    Refresh an access token using a refresh token.
 
     Requires a valid refresh token in the Authorization header.
 
@@ -86,7 +89,8 @@ def refresh():
 
 @auth_bp.route('/password/reset/request', methods=['POST'])
 def password_reset_request():
-    """Request a password reset token.
+    """
+    Request a password reset token.
 
     Request body:
         - email (str): The user's email address
@@ -109,7 +113,8 @@ def password_reset_request():
 
 @auth_bp.route('/password/reset', methods=['POST'])
 def password_reset():
-    """Reset a user's password using a reset token.
+    """
+    Reset a user's password using a reset token.
 
     Request body:
         - token (str): The password reset token
@@ -141,7 +146,8 @@ def password_reset():
 @auth_bp.route('/password/change', methods=['POST'])
 @jwt_required()
 def change_password():
-    """Change the password of the authenticated user.
+    """
+    Change the password of the authenticated user.
 
     Request body:
         - current_password (str): The current password
@@ -170,7 +176,8 @@ def change_password():
 @auth_bp.route('/me', methods=['GET'])
 @jwt_required()
 def get_me():
-    """Get the authenticated user's details.
+    """
+    Get the authenticated user's details.
 
     Requires a valid access token in the Authorization header.
 
